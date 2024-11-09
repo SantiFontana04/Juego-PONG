@@ -13,11 +13,24 @@ let pelotaX, pelotaY;
 let diametroPelota = 20;
 let velocidadPelotaX = 5;
 let velocidadPelotaY = 5;
+let anguloPelota = 0;
 
 let grosorMarco = 10;
 
 let jugadorScore = 0;
 let computadoraScore = 0;
+
+let fondo;
+let barraJugador;
+let barraComputadora;
+let bola;
+
+function preload() {
+    fondo = loadImage('fondo1.png');
+    barraJugador = loadImage('barra1.png');
+    barraComputadora = loadImage('barra2.png');
+    bola = loadImage('bola.png');
+}
 
 function setup() {
     createCanvas(anchoCanvas, altoCanvas);
@@ -27,7 +40,7 @@ function setup() {
 }
 
 function draw() {
-    background(0);
+    background(fondo);
     dibujarMarcos();
     dibujarRaquetas();
     dibujarPelota();
@@ -38,26 +51,29 @@ function draw() {
 }
 
 function dibujarMarcos() {
-    fill(255);
+    fill(color("#2B3FD6"));
     rect(0, 0, width, grosorMarco); // Marco superior
     rect(0, height - grosorMarco, width, grosorMarco); // Marco inferior
 }
 
 function dibujarRaquetas() {
-    fill(255);
-    rect(jugadorX, jugadorY, anchoRaqueta, altoRaqueta);
-    rect(computadoraX, computadoraY, anchoRaqueta, altoRaqueta);
+    image(barraJugador, jugadorX, jugadorY, anchoRaqueta, altoRaqueta);
+    image(barraComputadora, computadoraX, computadoraY, anchoRaqueta, altoRaqueta);
 }
 
 function dibujarPelota() {
-    fill(255);
-    ellipse(pelotaX, pelotaY, diametroPelota, diametroPelota);
+    push();
+    translate(pelotaX, pelotaY);
+    rotate(anguloPelota);
+    imageMode(CENTER);
+    image(bola, 0, 0, diametroPelota, diametroPelota);
+    pop();
 }
 
 function mostrarPuntaje() {
     textSize(32);
     textAlign(CENTER, CENTER);
-    fill(255);
+    fill(color("#2B3FD6"));
     text(jugadorScore, width / 4, grosorMarco * 3);
     text(computadoraScore, 3 * width / 4, grosorMarco * 3);
 }
@@ -65,6 +81,10 @@ function mostrarPuntaje() {
 function moverPelota() {
     pelotaX += velocidadPelotaX;
     pelotaY += velocidadPelotaY;
+
+    // Ajustar el ángulo de la pelota en función de su velocidad
+    let velocidadTotal = sqrt(velocidadPelotaX * velocidadPelotaX + velocidadPelotaY * velocidadPelotaY);
+    anguloPelota += velocidadTotal * 0.05;
 
     // Colisión con el marco superior e inferior
     if (pelotaY - diametroPelota / 2 < grosorMarco || 
@@ -87,19 +107,16 @@ function verificarColisiones() {
     if (pelotaX - diametroPelota / 2 < jugadorX + anchoRaqueta && 
         pelotaY > jugadorY && pelotaY < jugadorY + altoRaqueta) {
         let puntoImpacto = pelotaY - (jugadorY + altoRaqueta / 2);
-        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 45 grados
-        //velocidadPelotaX = 5 * cos(factorAngulo);
+        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 60 grados
         velocidadPelotaY = 10 * sin(factorAngulo);
         velocidadPelotaX *= -1;
-
     }
 
     // Colisión con la raqueta de la computadora
     if (pelotaX + diametroPelota / 2 > computadoraX && 
         pelotaY > computadoraY && pelotaY < computadoraY + altoRaqueta) {
         let puntoImpacto = pelotaY - (computadoraY + altoRaqueta / 2);
-        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 45 grados
-        //velocidadPelotaX = 5 * cos(factorAngulo);
+        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 60 grados
         velocidadPelotaY = 10 * sin(factorAngulo);
         velocidadPelotaX *= -1;
     }
@@ -119,6 +136,7 @@ function resetPelota() {
     pelotaY = height / 2;
     velocidadPelotaX = 5 * (Math.random() > 0.5 ? 1 : -1);
     velocidadPelotaY = 5 * (Math.random() > 0.5 ? 1 : -1);
+    anguloPelota = 0;
 }
 
 function keyPressed() {
@@ -129,13 +147,3 @@ function keyPressed() {
     }
     jugadorY = constrain(jugadorY, grosorMarco, height - grosorMarco - altoRaqueta);
 }
-
-mostrarPuntuacion();
-
-function mostrarPuntuacion() {
-  fill(255);
-  textSize(24);
-  text(`Jugador: ${puntuacionJugador}`, 50, 30);
-  text(`Computadora: ${puntuacionComputadora}`, width - 200, 30);
-}
-
