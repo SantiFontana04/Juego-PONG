@@ -11,8 +11,8 @@ let computadoraY;
 
 let pelotaX, pelotaY;
 let diametroPelota = 20;
-let velocidadPelotaX = 5;
-let velocidadPelotaY = 5;
+let velocidadPelotaX = 8;
+let velocidadPelotaY = 8;
 let anguloPelota = 0;
 
 let grosorMarco = 10;
@@ -24,12 +24,16 @@ let fondo;
 let barraJugador;
 let barraComputadora;
 let bola;
+let sonidoRebote;
+let sonidoGol;
 
 function preload() {
     fondo = loadImage('fondo1.png');
     barraJugador = loadImage('barra1.png');
     barraComputadora = loadImage('barra2.png');
     bola = loadImage('bola.png');
+    sonidoRebote = loadSound('bounce.wav');
+    sonidoGol = loadSound('jingle_win_synth_02.wav');
 }
 
 function setup() {
@@ -110,6 +114,7 @@ function verificarColisiones() {
         let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 60 grados
         velocidadPelotaY = 10 * sin(factorAngulo);
         velocidadPelotaX *= -1;
+        sonidoRebote.play(); // Reproducir sonido de rebote
     }
 
     // Colisión con la raqueta de la computadora
@@ -119,16 +124,26 @@ function verificarColisiones() {
         let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 60 grados
         velocidadPelotaY = 10 * sin(factorAngulo);
         velocidadPelotaX *= -1;
+        sonidoRebote.play(); // Reproducir sonido de rebote
     }
 
     // Colisión con los bordes izquierdo y derecho (anotación y reinicio)
     if (pelotaX < 0) {
         computadoraScore++;
+        sonidoGol.play(); // Reproducir sonido de gol
+        narrarMarcador(); // Narrar marcador
         resetPelota();
     } else if (pelotaX > width) {
         jugadorScore++;
+        sonidoGol.play(); // Reproducir sonido de gol
+        narrarMarcador(); // Narrar marcador
         resetPelota();
     }
+}
+
+function narrarMarcador() {
+    let narrador = new SpeechSynthesisUtterance(`El marcador es ${jugadorScore} a ${computadoraScore}`);
+    window.speechSynthesis.speak(narrador);
 }
 
 function resetPelota() {
