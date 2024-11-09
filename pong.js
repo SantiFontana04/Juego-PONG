@@ -1,126 +1,136 @@
-// Variables de la pelota
-let pelotaX, pelotaY;
-let velocidadPelotaX = 4;
-let velocidadPelotaY = 4;
-let diametroPelota = 20;
+let anchoCanvas = 800;
+let altoCanvas = 400;
 
-// Variables de las raquetas
+let jugadorX = 15;
+let jugadorY;
 let anchoRaqueta = 10;
 let altoRaqueta = 100;
 
-// Raqueta del jugador
-let raquetaJugadorX = 20;
-let raquetaJugadorY;
+let computadoraX = anchoCanvas - 25;
+let computadoraY;
 
-// Raqueta de la computadora
-let raquetaComputadoraX;
-let raquetaComputadoraY;
+let pelotaX, pelotaY;
+let diametroPelota = 20;
+let velocidadPelotaX = 5;
+let velocidadPelotaY = 5;
 
-// Puntuaciones
-let puntuacionJugador = 0;
-let puntuacionComputadora = 0;
-
-// Grosor del marco superior e inferior
 let grosorMarco = 10;
 
-// Factor de reacción y velocidad máxima de la computadora
-let factorReaccion = 0.05; // Precisión ajustable
-let velocidadMaximaComputadora = 3; // Velocidad máxima de la computadora
-let errorAleatorio = 0; // Desviación aleatoria
-let tiempoProximoError = 0; // Tiempo para el próximo ajuste de error
+let jugadorScore = 0;
+let computadoraScore = 0;
 
 function setup() {
-  createCanvas(800, 400);
-  pelotaX = width / 2;
-  pelotaY = height / 2;
-  raquetaJugadorY = height / 2 - altoRaqueta / 2;
-  raquetaComputadoraX = width - 30;
-  raquetaComputadoraY = height / 2 - altoRaqueta / 2;
+    createCanvas(anchoCanvas, altoCanvas);
+    jugadorY = height / 2 - altoRaqueta / 2;
+    computadoraY = height / 2 - altoRaqueta / 2;
+    resetPelota();
 }
 
 function draw() {
-  background(0);
-
-  // Dibujar marcos superior e inferior
-  fill(255);
-  rect(0, 0, width, grosorMarco); // Marco superior
-  rect(0, height - grosorMarco, width, grosorMarco); // Marco inferior
-
-  // Dibujar la pelota
-  ellipse(pelotaX, pelotaY, diametroPelota, diametroPelota);
-
-  // Dibujar raqueta del jugador
-  rect(raquetaJugadorX, raquetaJugadorY, anchoRaqueta, altoRaqueta);
-
-  // Dibujar raqueta de la computadora
-  rect(raquetaComputadoraX, raquetaComputadoraY, anchoRaqueta, altoRaqueta);
-
-  // Movimiento de la pelota
-  pelotaX += velocidadPelotaX;
-  pelotaY += velocidadPelotaY;
-
-  // Rebote en los marcos superior e inferior
-  if (pelotaY - diametroPelota / 2 < grosorMarco || 
-      pelotaY + diametroPelota / 2 > height - grosorMarco) {
-    velocidadPelotaY *= -1;
-  }
-
-  // Colisión con la raqueta del jugador
-  if (pelotaX - diametroPelota / 2 < raquetaJugadorX + anchoRaqueta &&
-      pelotaY > raquetaJugadorY &&
-      pelotaY < raquetaJugadorY + altoRaqueta) {
-    velocidadPelotaX *= -1;
-  }
-
-  // Colisión con la raqueta de la computadora
-  if (pelotaX + diametroPelota / 2 > raquetaComputadoraX &&
-      pelotaY > raquetaComputadoraY &&
-      pelotaY < raquetaComputadoraY + altoRaqueta) {
-    velocidadPelotaX *= -1;
-  }
-
-  // Movimiento de la raqueta del jugador con límites
-  if (keyIsDown(UP_ARROW) && raquetaJugadorY > grosorMarco) {
-    raquetaJugadorY -= 5;
-  }
-  if (keyIsDown(DOWN_ARROW) && raquetaJugadorY < height - altoRaqueta - grosorMarco) {
-    raquetaJugadorY += 5;
-  }
-
-  // Movimiento automático de la raqueta de la computadora
-  let destinoY = pelotaY - altoRaqueta / 2 + errorAleatorio;
-  let diferencia = destinoY - raquetaComputadoraY;
-
-  // Limitar la velocidad de la raqueta de la computadora
-  raquetaComputadoraY += constrain(diferencia * factorReaccion, -velocidadMaximaComputadora, velocidadMaximaComputadora);
-
-  // Restringir dentro de los márgenes
-  raquetaComputadoraY = constrain(raquetaComputadoraY, grosorMarco, height - altoRaqueta - grosorMarco);
-
-  // Ajustar error aleatorio a intervalos aleatorios
-  if (millis() > tiempoProximoError) {
-    errorAleatorio = random(-30, 30); // Introduce un error entre -30 y 30 píxeles
-    tiempoProximoError = millis() + random(1000, 3000); // Nuevo error cada 1-3 segundos
-  }
-
-  // Comprobar si la pelota sale por los bordes laterales
-  if (pelotaX < 0) {
-    puntuacionComputadora++;
-    reiniciarPelota();
-  } else if (pelotaX > width) {
-    puntuacionJugador++;
-    reiniciarPelota();
-  }
-
-  // Mostrar puntuaciones
-  mostrarPuntuacion();
+    background(0);
+    dibujarMarcos();
+    dibujarRaquetas();
+    dibujarPelota();
+    mostrarPuntaje();
+    moverPelota();
+    moverComputadora();
+    verificarColisiones();
 }
 
-function reiniciarPelota() {
-  pelotaX = width / 2;
-  pelotaY = height / 2;
-  velocidadPelotaX *= -1;
+function dibujarMarcos() {
+    fill(255);
+    rect(0, 0, width, grosorMarco); // Marco superior
+    rect(0, height - grosorMarco, width, grosorMarco); // Marco inferior
 }
+
+function dibujarRaquetas() {
+    fill(255);
+    rect(jugadorX, jugadorY, anchoRaqueta, altoRaqueta);
+    rect(computadoraX, computadoraY, anchoRaqueta, altoRaqueta);
+}
+
+function dibujarPelota() {
+    fill(255);
+    ellipse(pelotaX, pelotaY, diametroPelota, diametroPelota);
+}
+
+function mostrarPuntaje() {
+    textSize(32);
+    textAlign(CENTER, CENTER);
+    fill(255);
+    text(jugadorScore, width / 4, grosorMarco * 3);
+    text(computadoraScore, 3 * width / 4, grosorMarco * 3);
+}
+
+function moverPelota() {
+    pelotaX += velocidadPelotaX;
+    pelotaY += velocidadPelotaY;
+
+    // Colisión con el marco superior e inferior
+    if (pelotaY - diametroPelota / 2 < grosorMarco || 
+        pelotaY + diametroPelota / 2 > height - grosorMarco) {
+        velocidadPelotaY *= -1;
+    }
+}
+
+function moverComputadora() {
+    if (pelotaY > computadoraY + altoRaqueta / 2) {
+        computadoraY += 4;
+    } else if (pelotaY < computadoraY + altoRaqueta / 2) {
+        computadoraY -= 4;
+    }
+    computadoraY = constrain(computadoraY, grosorMarco, height - grosorMarco - altoRaqueta);
+}
+
+function verificarColisiones() {
+    // Colisión con la raqueta del jugador
+    if (pelotaX - diametroPelota / 2 < jugadorX + anchoRaqueta && 
+        pelotaY > jugadorY && pelotaY < jugadorY + altoRaqueta) {
+        let puntoImpacto = pelotaY - (jugadorY + altoRaqueta / 2);
+        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 45 grados
+        //velocidadPelotaX = 5 * cos(factorAngulo);
+        velocidadPelotaY = 10 * sin(factorAngulo);
+        velocidadPelotaX *= -1;
+
+    }
+
+    // Colisión con la raqueta de la computadora
+    if (pelotaX + diametroPelota / 2 > computadoraX && 
+        pelotaY > computadoraY && pelotaY < computadoraY + altoRaqueta) {
+        let puntoImpacto = pelotaY - (computadoraY + altoRaqueta / 2);
+        let factorAngulo = (puntoImpacto / (altoRaqueta / 2)) * PI / 3; // Ángulo máximo de 45 grados
+        //velocidadPelotaX = 5 * cos(factorAngulo);
+        velocidadPelotaY = 10 * sin(factorAngulo);
+        velocidadPelotaX *= -1;
+    }
+
+    // Colisión con los bordes izquierdo y derecho (anotación y reinicio)
+    if (pelotaX < 0) {
+        computadoraScore++;
+        resetPelota();
+    } else if (pelotaX > width) {
+        jugadorScore++;
+        resetPelota();
+    }
+}
+
+function resetPelota() {
+    pelotaX = width / 2;
+    pelotaY = height / 2;
+    velocidadPelotaX = 5 * (Math.random() > 0.5 ? 1 : -1);
+    velocidadPelotaY = 5 * (Math.random() > 0.5 ? 1 : -1);
+}
+
+function keyPressed() {
+    if (keyCode === UP_ARROW) {
+        jugadorY -= 50;
+    } else if (keyCode === DOWN_ARROW) {
+        jugadorY += 50;
+    }
+    jugadorY = constrain(jugadorY, grosorMarco, height - grosorMarco - altoRaqueta);
+}
+
+mostrarPuntuacion();
 
 function mostrarPuntuacion() {
   fill(255);
@@ -128,3 +138,4 @@ function mostrarPuntuacion() {
   text(`Jugador: ${puntuacionJugador}`, 50, 30);
   text(`Computadora: ${puntuacionComputadora}`, width - 200, 30);
 }
+
